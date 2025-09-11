@@ -1,18 +1,13 @@
-import { Header } from "@/components/Header";
 import "bootstrap/dist/css/bootstrap.min.css";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "800"],
 });
 
 export const metadata: Metadata = {
@@ -27,13 +22,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <div>
-          <Header />
-          <main>{children}</main>
-        </div>
+      <body className={`${inter.variable} antialiased`}>
+        <main>{children}</main>
         <Script
           src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
           strategy="afterInteractive"
