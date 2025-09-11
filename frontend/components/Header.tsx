@@ -1,17 +1,15 @@
-import { Container, Navbar, Nav } from "react-bootstrap";
-
 export const Header = () => {
   return (
-    <Navbar bg="light" data-bs-theme="light">
-      <Container>
-        <Navbar.Brand href="#home">Navbar</Navbar.Brand>
-        <Nav className="me-auto">
-          <Nav.Link href="#home">Home</Nav.Link>
-          <Nav.Link href="#features">Features</Nav.Link>
-          <Nav.Link href="#pricing">Pricing</Nav.Link>
-        </Nav>
-      </Container>
-    </Navbar>
+    <nav className="navbar navbar-light bg-light">
+      <div className="container">
+        <a className="navbar-brand" href="#home">Navbar</a>
+        <div className="navbar-nav">
+          <a className="nav-link" href="#home">Home</a>
+          <a className="nav-link" href="#features">Features</a>
+          <a className="nav-link" href="#pricing">Pricing</a>
+        </div>
+      </div>
+    </nav>
   );
 };
 
