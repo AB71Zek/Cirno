@@ -3,7 +3,7 @@ import { Button, Container, Form, InputGroup } from "react-bootstrap";
 const PromptInput = () => {
   return (
     <Container>
-      <InputGroup className="my-10">
+      <InputGroup className="mb-4">
         <Button variant="outline-secondary" id="input-button">
           Upload
         </Button>
