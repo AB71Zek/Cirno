@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { GoogleGenAI } = require("@google/genai");
@@ -8,17 +8,17 @@ app.use(express.json());
 app.use(cors());
 
 const genAI = new GoogleGenAI({
-    vertexai: true,
-    project: process.env.GCP_PROJECT_ID,
-    location: process.env.GCP_LOCATION,
+  vertexai: true,
+  project: process.env.GCP_PROJECT_ID,
+  location: process.env.GCP_LOCATION,
 });
 
 // Health check endpoint
 app.get("/", (req, res) => {
-  res.json({ 
+  res.json({
     message: "Cirno Chat API is running!",
     status: "healthy",
-    gemini_connected: !!genAI
+    gemini_connected: !!genAI,
   });
 });
 
@@ -27,24 +27,24 @@ app.post("/api/chat", async (req, res) => {
   try {
     // Validate request
     if (!req.body.message) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Message is required",
-        success: false 
+        success: false,
       });
     }
 
     // Check if Gemini is configured
     if (!genAI) {
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: "Gemini API not configured. Please check your API key.",
-        success: false 
+        success: false,
       });
     }
 
     // Generate content using the correct API
     const result = await genAI.models.generateContent({
       model: "gemini-2.5-flash-lite",
-      contents: {"role": "user", parts: [{ text: req.body.message }] }
+      contents: { role: "user", parts: [{ text: req.body.message }] },
     });
 
     // Extract the response text
@@ -54,15 +54,14 @@ app.post("/api/chat", async (req, res) => {
     res.json({
       success: true,
       message: text,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
     console.error("Gemini API Error:", error);
     res.status(500).json({
       success: false,
       error: "Failed to generate response",
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -72,17 +71,17 @@ app.post("/api/problem-solver", async (req, res) => {
   try {
     // Validate request
     if (!req.body.message) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Message is required",
-        success: false 
+        success: false,
       });
     }
 
     // Check if Gemini is configured
     if (!genAI) {
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: "Gemini API not configured. Please check your API key.",
-        success: false 
+        success: false,
       });
     }
 
@@ -104,9 +103,12 @@ The user may ask for an explanation of certain terms, in this case, explain in a
     const result = await genAI.models.generateContent({
       model: "gemini-2.5-flash-lite",
       config: {
-        systemInstruction: {role: "system", parts: [{text: systemInstructions}]}
-    },
-      contents: {"role": "user", parts: [{ text: req.body.message }] }
+        systemInstruction: {
+          role: "system",
+          parts: [{ text: systemInstructions }],
+        },
+      },
+      contents: { role: "user", parts: [{ text: req.body.message }] },
     });
 
     // Extract the response text
@@ -117,15 +119,14 @@ The user may ask for an explanation of certain terms, in this case, explain in a
       success: true,
       message: text,
       mode: "problem_solver",
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
     console.error("Problem Solver API Error:", error);
     res.status(500).json({
       success: false,
       error: "Failed to generate response",
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -139,22 +140,13 @@ app.get("/api/models", (req, res) => {
         id: "problem_solver",
         name: "Problem Solver",
         description: "Professional Math Tutor for step-by-step problem solving",
-        endpoint: "/api/problem-solver"
-      }
-    ]
+        endpoint: "/api/problem-solver",
+      },
+    ],
   });
 });
 
 const PORT = process.env.PORT || 5000;
-
-// Validate that Google API key is configured
-if (!process.env.GOOGLE_API_KEY) {
-  console.warn('Warning: GOOGLE_API_KEY not found in environment variables');
-  console.warn('Please create a .env file with your Google API key');
-  console.warn('Get your API key from: https://aistudio.google.com/');
-} else {
-  console.log('Gemini API configured successfully');
-}
 
 app.listen(PORT, () => {
   console.log(`Cirno Chat API server is running on PORT ${PORT}`);
