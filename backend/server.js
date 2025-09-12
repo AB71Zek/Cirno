@@ -7,11 +7,11 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Initialize Gemini AI
-let genAI = null;
-if (process.env.GOOGLE_API_KEY) {
-  genAI = new GoogleGenAI({apiKey : process.env.GOOGLE_API_KEY});
-}
+const genAI = new GoogleGenAI({
+    vertexai: true,
+    project: process.env.GCP_PROJECT_ID,
+    location: process.env.GCP_LOCATION,
+});
 
 // Health check endpoint
 app.get("/", (req, res) => {
@@ -44,7 +44,7 @@ app.post("/api/chat", async (req, res) => {
     // Generate content using the correct API
     const result = await genAI.models.generateContent({
       model: "gemini-2.5-flash-lite",
-      contents: [{ parts: [{ text: req.body.message }] }]
+      contents: {"role": "user", parts: [{ text: req.body.message }] }
     });
 
     // Extract the response text
@@ -103,8 +103,10 @@ The user may ask for an explanation of certain terms, in this case, explain in a
     // Generate content with system instructions
     const result = await genAI.models.generateContent({
       model: "gemini-2.5-flash-lite",
-      contents: [{ parts: [{ text: req.body.message }] }],
-      systemInstruction: { parts: [{ text: systemInstructions }] }
+      config: {
+        systemInstruction: {role: "system", parts: [{text: systemInstructions}]}
+    },
+      contents: {"role": "user", parts: [{ text: req.body.message }] }
     });
 
     // Extract the response text
