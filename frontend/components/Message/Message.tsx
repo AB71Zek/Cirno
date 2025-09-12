@@ -1,13 +1,28 @@
+import { Fragment } from "react";
 import { Card, CardHeader, CardBody, CardText } from "react-bootstrap";
 
-const Message = () => {
+interface MessageProps {
+  submittedMessage: string;
+  response: string;
+  loading: boolean;
+}
+
+const Message: React.FC<MessageProps> = ({
+  submittedMessage,
+  response,
+  loading,
+}) => {
   return (
-    <Card>
-      <CardHeader># I need help with fractions</CardHeader>
-      <CardBody>
-        <CardText>Okay! Let’s start simple. What is 1/2 + 1/4?</CardText>
-      </CardBody>
-    </Card>
+    <Fragment>
+      <Card>
+        <CardHeader>{submittedMessage}</CardHeader>
+        <CardBody>
+          <CardText>{loading ? "Loading..." : response}</CardText>
+        </CardBody>
+      </Card>
+      {/* <Button>Give Hint</Button>
+      <Button>Give Full Solution</Button> */}
+    </Fragment>
   );
 };
 
