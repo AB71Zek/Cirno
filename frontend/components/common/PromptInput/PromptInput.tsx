@@ -15,7 +15,6 @@ const PromptInput: React.FC<PromptInputProps> = ({
 }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage("");
     await sendMessage();
   };
 
@@ -23,9 +22,9 @@ const PromptInput: React.FC<PromptInputProps> = ({
     <Container>
       <Form onSubmit={handleSubmit}>
         <InputGroup className="mb-4">
-          <Button variant="outline-secondary" id="input-button">
+          {/* <Button variant="outline-secondary" id="input-button">
             Upload
-          </Button>
+          </Button> */}
           <Form.Control
             value={message}
             onChange={(e) => setMessage(e.target.value)}
