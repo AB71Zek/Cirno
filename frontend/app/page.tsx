@@ -85,7 +85,7 @@ export default function Home() {
           ))}
         </Container>
       </div>
-
+      
       <PromptInput
         sendMessage={sendMessage}
         message={message}
