@@ -1,4 +1,5 @@
 import { Card, CardBody } from "react-bootstrap";
+import MarkdownRenderer from "@/components/common/MarkdownRenderer";
 
 interface MessageProps {
   submittedMessage?: string;
@@ -53,7 +54,13 @@ const Message: React.FC<MessageProps> = ({
           {/* Display text message */}
           {messageText && (
             <div>
-              {loading && !isUser ? "Typing..." : messageText}
+              {loading && !isUser ? (
+                "Typing..."
+              ) : isUser ? (
+                messageText
+              ) : (
+                <MarkdownRenderer content={messageText} />
+              )}
             </div>
           )}
         </CardBody>
