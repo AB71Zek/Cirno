@@ -14,23 +14,45 @@ export async function POST(req: Request) {
       
       const res = await fetch(`${BACKEND_URL}/api/conversation/problem-solver`, {
         method: "POST",
+        headers: {
+          'Cookie': req.headers.get('cookie') || '',
+        },
         body: formData,
       });
 
       const data = await res.json();
-      return NextResponse.json(data);
+      const response = NextResponse.json(data);
+      
+      // Forward cookies from backend to frontend
+      const setCookieHeader = res.headers.get('set-cookie');
+      if (setCookieHeader) {
+        response.headers.set('set-cookie', setCookieHeader);
+      }
+      
+      return response;
     } else {
       // Handle JSON (text-only messages)
       const { message, sessionId } = await req.json();
 
       const res = await fetch(`${BACKEND_URL}/api/conversation/problem-solver`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Cookie': req.headers.get('cookie') || '',
+        },
         body: JSON.stringify({ message, sessionId }),
       });
 
       const data = await res.json();
-      return NextResponse.json(data);
+      const response = NextResponse.json(data);
+      
+      // Forward cookies from backend to frontend
+      const setCookieHeader = res.headers.get('set-cookie');
+      if (setCookieHeader) {
+        response.headers.set('set-cookie', setCookieHeader);
+      }
+      
+      return response;
     }
   } catch (error) {
     console.error("API Route Error:", error);

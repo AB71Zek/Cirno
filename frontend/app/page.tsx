@@ -13,7 +13,45 @@ export default function Home() {
     { role: "user" | "assistant"; text: string; image?: string }[]
   >([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Load existing conversation on page load
+  useEffect(() => {
+    async function loadConversation() {
+      try {
+        // Check if we have a sessionId in localStorage first
+        const storedSessionId = localStorage.getItem('sessionId');
+        
+        if (storedSessionId) {
+          // Fetch existing messages for this session
+          const messagesResponse = await fetch(`/api/conversation/${storedSessionId}`);
+          if (messagesResponse.ok) {
+            const messagesData = await messagesResponse.json();
+            if (messagesData.success && messagesData.messages.length > 0) {
+              // Convert Firestore messages to frontend format
+              const formattedMessages = messagesData.messages.map((msg: any) => ({
+                role: msg.role,
+                text: msg.parts.find((part: any) => part.text)?.text || "",
+                image: msg.parts.find((part: any) => part.inlineData) ? 
+                  `data:${msg.parts.find((part: any) => part.inlineData)?.inlineData?.mimeType};base64,${msg.parts.find((part: any) => part.inlineData)?.inlineData?.data}` : 
+                  undefined,
+              }));
+              
+              setConversation(formattedMessages);
+              setSessionId(messagesData.sessionId);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load conversation:", error);
+      } finally {
+        setInitialLoading(false);
+      }
+    }
+
+    loadConversation();
+  }, []);
 
   // Auto-scroll to bottom when conversation updates
   useEffect(() => {
@@ -64,7 +102,10 @@ export default function Home() {
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
 
-      if (data.sessionId && !sessionId) setSessionId(data.sessionId);
+      if (data.sessionId) {
+        setSessionId(data.sessionId);
+        localStorage.setItem('sessionId', data.sessionId);
+      }
 
       // Replace placeholder with actual AI response
       setConversation((prev) =>
@@ -93,12 +134,17 @@ export default function Home() {
         ].join(" ")}
       >
         <Container>
-          {conversation.length === 0 && (
+          {initialLoading ? (
+            <div className="text-center text-white">
+              <h1 className="font-[800]">Cirno Here ᗜˬᗜ</h1>
+              <p className="text-lg">Loading your conversation...</p>
+            </div>
+          ) : conversation.length === 0 ? (
             <div className="text-center text-white">
               <h1 className="font-[800]">Cirno Here ᗜˬᗜ</h1>
               <p className="text-lg">What do you need help with?</p>
             </div>
-          )}
+          ) : null}
 
           {conversation.map((msg, idx) => (
             <Message

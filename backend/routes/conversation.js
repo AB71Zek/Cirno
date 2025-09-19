@@ -1,8 +1,14 @@
 const express = require("express");
 const multer = require("multer");
-const { db, admin } = require("../services/firebase");
 const genAI = require("../services/gemini");
 const { compressImage, imageToBase64 } = require("../utils/imageProcessor");
+const { extractAndValidateSession, setSessionCookie } = require("../utils/sessionManager");
+const { 
+  ensureConversationExists, 
+  saveMessage, 
+  getConversationMessages, 
+  deleteConversation 
+} = require("../services/conversationService");
 
 const router = express.Router();
 
@@ -52,20 +58,18 @@ router.post("/problem-solver", upload.single('image'), async (req, res) => {
       });
     }
 
-    // Generate or use existing session ID
-    const sessionId =
-      req.body.sessionId ||
-      `session_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-
-    const sessionRef = db.collection("conversations").doc(sessionId);
+    // Extract and validate session
+    const { sessionId, isValid, isNew } = extractAndValidateSession(req);
+    
+    if (!isValid) {
+      return res.status(400).json({
+        error: "Invalid session ID format",
+        success: false,
+      });
+    }
 
     // Ensure conversation document exists
-    await sessionRef.set(
-      {
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
+    await ensureConversationExists(sessionId);
 
     // Prepare message parts
     const messageParts = [];
@@ -89,20 +93,13 @@ router.post("/problem-solver", upload.single('image'), async (req, res) => {
     }
 
     // Save user message to Firestore
-    await sessionRef.collection("messages").add({
-      role: "user",
-      parts: messageParts,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    await saveMessage(sessionId, "user", messageParts);
 
-    // Fetch conversation history ordered by timestamp
-    const messagesSnapshot = await sessionRef
-      .collection("messages")
-      .orderBy("timestamp", "asc")
-      .get();
-    const contents = messagesSnapshot.docs.map((doc) => ({
-      role: doc.data().role,
-      parts: doc.data().parts,
+    // Fetch conversation history
+    const messages = await getConversationMessages(sessionId);
+    const contents = messages.map((msg) => ({
+      role: msg.role,
+      parts: msg.parts,
     }));
 
     // System Instructions
@@ -141,11 +138,7 @@ router.post("/problem-solver", upload.single('image'), async (req, res) => {
     const text = result.candidates[0].content.parts[0].text;
 
     // Save assistant response to Firestore
-    await sessionRef.collection("messages").add({
-      role: "assistant",
-      parts: [{ text }],
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    await saveMessage(sessionId, "assistant", [{ text }]);
 
     // Determine response mode
     let mode = "problem_solver_text";
@@ -154,6 +147,9 @@ router.post("/problem-solver", upload.single('image'), async (req, res) => {
     } else if (req.file) {
       mode = "problem_solver_image";
     }
+
+    // Set sessionId cookie
+    setSessionCookie(res, sessionId);
 
     // Return the response
     res.json({
@@ -173,6 +169,36 @@ router.post("/problem-solver", upload.single('image'), async (req, res) => {
   }
 });
 
+// GET CONVERSATION MESSAGES (/api/conversation/:sessionId)
+router.get("/:sessionId", async (req, res) => {
+  try {
+    const sessionId = req.params.sessionId;
+    if (!sessionId) {
+      return res.status(400).json({
+        error: "Session ID is required",
+        success: false,
+      });
+    }
+
+    const messages = await getConversationMessages(sessionId);
+    
+
+    res.json({
+      success: true,
+      sessionId,
+      messages,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Get Messages API Error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch messages",
+      details: error.message,
+    });
+  }
+});
+
 // DELETE CHAT (/api/conversation/:sessionId)
 router.delete("/:sessionId", async (req, res) => {
   try {
@@ -184,22 +210,7 @@ router.delete("/:sessionId", async (req, res) => {
       });
     }
 
-    const sessionRef = db.collection("conversations").doc(sessionId);
-    const sessionDoc = await sessionRef.get();
-    if (!sessionDoc.exists) {
-      return res
-        .status(404)
-        .json({ error: "Conversation not found", success: false });
-    }
-
-    // Delete messages subcollection
-    const messagesSnapshot = await sessionRef.collection("messages").get();
-    const batch = db.batch();
-    messagesSnapshot.forEach((doc) => {
-      batch.delete(doc.ref);
-    });
-    batch.delete(sessionRef);
-    await batch.commit();
+    await deleteConversation(sessionId);
 
     res.json({
       success: true,
@@ -208,6 +219,14 @@ router.delete("/:sessionId", async (req, res) => {
     });
   } catch (error) {
     console.error("Delete Conversation API Error:", error);
+    
+    if (error.message === "Conversation not found") {
+      return res.status(404).json({
+        success: false,
+        error: "Conversation not found",
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: "Failed to delete conversation",
@@ -216,6 +235,7 @@ router.delete("/:sessionId", async (req, res) => {
   }
 });
 
+// Alternative version where it outputs a json object and leaves it to frontend to handle it
 // List available modes
 // router.get("/models", (req, res) => {
 //   res.json({
