@@ -1,17 +1,17 @@
-import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import remarkGfm from 'remark-gfm';
-import 'katex/dist/katex.min.css';
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import remarkGfm from "remark-gfm";
+import "katex/dist/katex.min.css";
 
 interface MarkdownRendererProps {
   content: string;
   className?: string;
 }
 
-const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ 
-  content, 
-  className = "" 
+const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
+  content,
+  className = "",
 }) => {
   return (
     <div className={`markdown-content ${className}`}>
@@ -21,15 +21,18 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         components={{
           // Custom styling for code blocks
           code({ node, inline, className, children, ...props }) {
-            const match = /language-(\w+)/.exec(className || '');
+            const match = /language-(\w+)/.exec(className || "");
             return !inline && match ? (
-              <pre className="bg-dark text-light p-3 rounded mb-3">
+              <pre className="!bg-neutral-500 text-white p-3 rounded mb-3">
                 <code className={className} {...props}>
                   {children}
                 </code>
               </pre>
             ) : (
-              <code className="bg-light text-dark px-2 py-1 rounded" {...props}>
+              <code
+                className="!bg-neutral-500 text-white px-2 py-1 rounded"
+                {...props}
+              >
                 {children}
               </code>
             );
@@ -55,9 +58,9 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           // Custom styling for links
           a({ href, children }) {
             return (
-              <a 
-                href={href} 
-                target="_blank" 
+              <a
+                href={href}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary text-decoration-none"
               >
@@ -106,7 +109,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           // Custom styling for emphasis/italic text
           em({ children }) {
             return <em className="fst-italic">{children}</em>;
-          }
+          },
         }}
       >
         {content}

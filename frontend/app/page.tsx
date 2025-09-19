@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Container } from "react-bootstrap";
 import Header from "@/components/Header";
 import PromptInput from "@/components/common/PromptInput";
@@ -13,6 +13,12 @@ export default function Home() {
     { role: "user" | "assistant"; text: string; image?: string }[]
   >([]);
   const [loading, setLoading] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when conversation updates
+  useEffect(() => {
+    chatContainerRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [conversation]);
 
   async function sendMessage() {
     if (!message.trim() && !selectedImage) return;
@@ -78,7 +84,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-main">
       <Header />
       <div
         className={[
@@ -88,7 +94,7 @@ export default function Home() {
       >
         <Container>
           {conversation.length === 0 && (
-            <div className="text-center">
+            <div className="text-center text-white">
               <h1 className="font-[800]">Cirno Here ᗜˬᗜ</h1>
               <p className="text-lg">What do you need help with?</p>
             </div>
@@ -104,9 +110,10 @@ export default function Home() {
               loading={loading && idx === conversation.length - 1}
             />
           ))}
+          <div ref={chatContainerRef} />
         </Container>
       </div>
-      
+
       <PromptInput
         sendMessage={sendMessage}
         message={message}

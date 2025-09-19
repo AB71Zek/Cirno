@@ -22,15 +22,15 @@ const Message: React.FC<MessageProps> = ({
 
   return (
     <div
-      className={`d-flex mb-3 ${
+      className={`d-flex ${
         isUser ? "justify-content-end" : "justify-content-start"
       }`}
     >
       <Card
         className={`max-w-[70%] ${
           isUser
-            ? "text-white bg-primary rounded-end rounded-start-3"
-            : "text-dark bg-light rounded-start rounded-end-3"
+            ? "text-white !bg-indigo-500 border-0 rounded-end rounded-start-3"
+            : "text-white !bg-neutral-700 border-0 rounded-start rounded-end-3"
         }`}
       >
         <CardBody className="px-4 py-2">
@@ -40,17 +40,17 @@ const Message: React.FC<MessageProps> = ({
               <img
                 src={image}
                 alt="Uploaded content"
-                style={{ 
-                  maxHeight: '300px', 
-                  maxWidth: '100%', 
-                  objectFit: 'contain',
-                  borderRadius: '8px'
+                style={{
+                  maxHeight: "300px",
+                  maxWidth: "100%",
+                  objectFit: "contain",
+                  borderRadius: "8px",
                 }}
                 className="d-block"
               />
             </div>
           )}
-          
+
           {/* Display text message */}
           {messageText && (
             <div>

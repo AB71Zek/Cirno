@@ -1,5 +1,39 @@
 @import "tailwindcss";
 
+@theme {
+  --color-bg: #252525;
+  --border-color: #444444;
+  --color-text: #ffffff;
+}
+
+.bg-main {
+  background: linear-gradient(rgba(37, 37, 37, 0.9), rgba(37, 37, 37, 0.9)),
+    url("/images/math-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.form-control {
+  background-color: var(--color-bg) !important;
+  color: var(--color-text) !important;
+  border-color: var(--border-color) !important;
+}
+
+.form-control:focus {
+  border-color: #5f5f5f !important;
+  box-shadow: 0 0 0 0.25rem rgba(104, 104, 104, 0.25) !important;
+}
+
+.form-control::placeholder {
+  color: #919191 !important;
+}
+
+.card-body {
+  border: none;
+}
+
 /* Markdown and LaTeX styling */
 .markdown-content {
   line-height: 1.6;
@@ -53,7 +87,7 @@
 }
 
 .markdown-content code {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
   font-size: 0.875em;
 }
 

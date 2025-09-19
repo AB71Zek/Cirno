@@ -2,9 +2,9 @@ import { Container, Navbar, NavbarBrand } from "react-bootstrap";
 
 const Header = () => {
   return (
-    <Navbar expand="lg" className="bg-body-tertiary">
+    <Navbar expand="lg" className="bg-neutral-800">
       <Container>
-        <NavbarBrand className="font-bold" href="#">
+        <NavbarBrand className="font-bold text-white" href="/">
           Cirno
         </NavbarBrand>
       </Container>

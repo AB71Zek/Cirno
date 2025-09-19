@@ -1,5 +1,5 @@
 import { Button, Container, Form, InputGroup } from "react-bootstrap";
-import { useState, useRef } from "react";
+import { useRef } from "react";
 
 type PromptInputProps = {
   sendMessage: () => Promise<void>;
@@ -29,18 +29,25 @@ const PromptInput: React.FC<PromptInputProps> = ({
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/bmp', 'image/tiff'];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+        "image/bmp",
+        "image/tiff",
+      ];
       if (!allowedTypes.includes(file.type)) {
-        alert('Please select a valid image file (JPEG, PNG, WebP, BMP, TIFF)');
+        alert("Please select a valid image file (JPEG, PNG, WebP, BMP, TIFF)");
         return;
       }
-      
+
       // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
-        alert('File size must be less than 5MB');
+        alert("File size must be less than 5MB");
         return;
       }
-      
+
       setSelectedImage(file);
     }
   };
@@ -48,7 +55,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
   const handleImageRemove = () => {
     setSelectedImage(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -61,14 +68,10 @@ const PromptInput: React.FC<PromptInputProps> = ({
       <Form onSubmit={handleSubmit}>
         {/* Image Preview */}
         {selectedImage && (
-          <div className="mb-3 p-3 border rounded bg-light">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <small className="text-muted">Selected Image:</small>
-              <Button
-                variant="outline-danger"
-                size="sm"
-                onClick={handleImageRemove}
-              >
+          <div className="mb-3 p-3 rounded bg-neutral-700">
+            <div className="d-flex justify-content-between align-items-center mb-2 text-white">
+              <small className="text-muted !text-white">Selected Image:</small>
+              <Button variant="danger" size="sm" onClick={handleImageRemove}>
                 Remove
               </Button>
             </div>
@@ -76,12 +79,17 @@ const PromptInput: React.FC<PromptInputProps> = ({
               <img
                 src={URL.createObjectURL(selectedImage)}
                 alt="Preview"
-                style={{ maxHeight: '200px', maxWidth: '100%', objectFit: 'contain' }}
+                style={{
+                  maxHeight: "200px",
+                  maxWidth: "100%",
+                  objectFit: "contain",
+                }}
                 className="rounded"
               />
               <div className="mt-2">
-                <small className="text-muted">
-                  {selectedImage.name} ({(selectedImage.size / 1024 / 1024).toFixed(2)} MB)
+                <small className="text-muted !text-white">
+                  {selectedImage.name} (
+                  {(selectedImage.size / 1024 / 1024).toFixed(2)} MB)
                 </small>
               </div>
             </div>
@@ -89,8 +97,8 @@ const PromptInput: React.FC<PromptInputProps> = ({
         )}
 
         <InputGroup className="mb-4">
-          <Button 
-            variant="outline-secondary" 
+          <Button
+            variant="light"
             onClick={handleUploadClick}
             disabled={loading}
             type="button"
@@ -102,7 +110,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
             type="file"
             accept="image/jpeg,image/jpg,image/png,image/webp,image/bmp,image/tiff"
             onChange={handleImageSelect}
-            style={{ display: 'none' }}
+            style={{ display: "none" }}
           />
           <Form.Control
             value={message}
@@ -114,7 +122,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
           <Button
             onClick={handleSubmit}
             disabled={loading || (!message.trim() && !selectedImage)}
-            variant="outline-secondary"
+            variant="light"
             id="input-button"
           >
             {loading ? "..." : "Send"}
