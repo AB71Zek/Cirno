@@ -1,5 +1,6 @@
 import { Card, CardBody } from "react-bootstrap";
 import MarkdownRenderer from "@/components/common/MarkdownRenderer";
+import Image from "next/image";
 
 interface MessageProps {
   submittedMessage?: string;
@@ -37,7 +38,7 @@ const Message: React.FC<MessageProps> = ({
           {/* Display image if present */}
           {image && (
             <div className="mb-2">
-              <img
+              <Image
                 src={image}
                 alt="Uploaded content"
                 style={{
@@ -47,6 +48,8 @@ const Message: React.FC<MessageProps> = ({
                   borderRadius: "8px",
                 }}
                 className="d-block"
+                width={300}
+                height={300}
               />
             </div>
           )}
