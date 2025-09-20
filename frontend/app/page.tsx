@@ -14,6 +14,7 @@ export default function Home() {
   >([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Load existing conversation on page load
@@ -24,6 +25,9 @@ export default function Home() {
         const storedSessionId = localStorage.getItem('sessionId');
         
         if (storedSessionId) {
+          // Show loading screen when we start fetching messages
+          setShowLoadingOverlay(true);
+          
           // Fetch existing messages for this session
           const messagesResponse = await fetch(`/api/conversation/${storedSessionId}`);
           if (messagesResponse.ok) {
@@ -40,13 +44,28 @@ export default function Home() {
               
               setConversation(formattedMessages);
               setSessionId(messagesData.sessionId);
+            } else {
+              // No messages found, hide loading screen immediately
+              setShowLoadingOverlay(false);
             }
+          } else {
+            // Session not found, hide loading screen immediately
+            setShowLoadingOverlay(false);
           }
         }
+        // No stored session - loading screen stays false (never shown)
       } catch (error) {
         console.error("Failed to load conversation:", error);
+        // On error, skip loading screen
+        setShowLoadingOverlay(false);
       } finally {
         setInitialLoading(false);
+        // Only animate if we're showing the loading screen
+        if (showLoadingOverlay) {
+          setTimeout(() => {
+            setShowLoadingOverlay(false);
+          }, 600); // Wait for animation to complete (500ms + 100ms buffer)
+        }
       }
     }
 
@@ -58,7 +77,19 @@ export default function Home() {
     chatContainerRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [conversation]);
 
-  const startNewConversation = () => {
+  const startNewConversation = async () => {
+    // Delete the current session from backend if it exists
+    if (sessionId) {
+      try {
+        await fetch(`/api/conversation/${sessionId}`, {
+          method: 'DELETE',
+        });
+      } catch (error) {
+        console.error('Failed to delete session:', error);
+      }
+    }
+    
+    // Clear frontend state
     setConversation([]);
     setSessionId(null);
     localStorage.removeItem('sessionId');
@@ -134,6 +165,28 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-main">
+      {/* Loading Overlay */}
+      {showLoadingOverlay && (
+        <div 
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-neutral-800"
+          style={{
+            zIndex: 9999,
+            transition: 'transform 0.5s ease-out',
+            transform: initialLoading ? 'translateY(0)' : 'translateY(-100%)'
+          }}
+        >
+          <div className="text-center text-white">
+            <div className="d-flex justify-content-center mb-3">
+              <div className="spinner-border text-light" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+            <h1 className="font-[800]">Cirno Here ᗜˬᗜ</h1>
+            <p className="text-lg">Loading your conversation...</p>
+          </div>
+        </div>
+      )}
+
       <Header />
       <div
         className={[
@@ -142,17 +195,12 @@ export default function Home() {
         ].join(" ")}
       >
         <Container>
-          {initialLoading ? (
-            <div className="text-center text-white">
-              <h1 className="font-[800]">Cirno Here ᗜˬᗜ</h1>
-              <p className="text-lg">Loading your conversation...</p>
-            </div>
-          ) : conversation.length === 0 ? (
+          {!initialLoading && conversation.length === 0 && (
             <div className="text-center text-white">
               <h1 className="font-[800]">Cirno Here ᗜˬᗜ</h1>
               <p className="text-lg">What do you need help with?</p>
             </div>
-          ) : null}
+          )}
 
           {conversation.map((msg, idx) => (
             <Message

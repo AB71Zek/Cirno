@@ -27,3 +27,28 @@ export async function GET(
     );
   }
 }
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ sessionId: string }> }
+) {
+  try {
+    const { sessionId } = await params;
+
+    const res = await fetch(`${BACKEND_URL}/api/conversation/${sessionId}`, {
+      method: "DELETE",
+      headers: {
+        'Cookie': req.headers.get('cookie') || '',
+      },
+    });
+
+    const data = await res.json();
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("Delete Conversation API Route Error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to delete conversation" },
+      { status: 500 }
+    );
+  }
+}
