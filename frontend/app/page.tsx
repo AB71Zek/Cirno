@@ -20,6 +20,8 @@ export default function Home() {
   // Load existing conversation on page load
   useEffect(() => {
     async function loadConversation() {
+      let shouldShowLoading = false;
+      
       try {
         // Make a test request to get sessionId from cookies
         const testResponse = await fetch("/api/conversation/problem-solver", {
@@ -30,14 +32,18 @@ export default function Home() {
         
         if (testResponse.ok) {
           const testData = await testResponse.json();
+          
           if (testData.sessionId) {
             // Show loading screen when we start fetching messages
             setShowLoadingOverlay(true);
+            shouldShowLoading = true;
             
             // Fetch existing messages for this session
             const messagesResponse = await fetch(`/api/conversation/${testData.sessionId}`);
+            
             if (messagesResponse.ok) {
               const messagesData = await messagesResponse.json();
+              
               if (messagesData.success && messagesData.messages.length > 0) {
                 // Convert Firestore messages to frontend format
                 const formattedMessages = messagesData.messages.map((msg: any) => ({
@@ -53,27 +59,32 @@ export default function Home() {
               } else {
                 // No messages found, hide loading screen immediately
                 setShowLoadingOverlay(false);
+                shouldShowLoading = false;
               }
             } else {
               // Session not found, hide loading screen immediately
               setShowLoadingOverlay(false);
+              shouldShowLoading = false;
             }
           } else {
             // No sessionId returned, hide loading screen immediately
             setShowLoadingOverlay(false);
+            shouldShowLoading = false;
           }
         } else {
           // Test request failed, hide loading screen immediately
           setShowLoadingOverlay(false);
+          shouldShowLoading = false;
         }
       } catch (error) {
         console.error("Failed to load conversation:", error);
         // On error, skip loading screen
         setShowLoadingOverlay(false);
+        shouldShowLoading = false;
       } finally {
         setInitialLoading(false);
         // Only animate if we're showing the loading screen
-        if (showLoadingOverlay) {
+        if (shouldShowLoading) {
           setTimeout(() => {
             setShowLoadingOverlay(false);
           }, 600); // Wait for animation to complete (500ms + 100ms buffer)
