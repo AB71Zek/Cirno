@@ -1,6 +1,7 @@
 import { Button, Container, Form, InputGroup, Dropdown } from "react-bootstrap";
 import { useRef, useState } from "react";
 import ConfirmationModal from "../ConfirmationModal";
+import Image from "next/image";
 
 type PromptInputProps = {
   sendMessage: () => Promise<void>;
@@ -88,7 +89,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
               </Button>
             </div>
             <div className="text-center">
-              <img
+              <Image
                 src={URL.createObjectURL(selectedImage)}
                 alt="Preview"
                 style={{
@@ -97,6 +98,8 @@ const PromptInput: React.FC<PromptInputProps> = ({
                   objectFit: "contain",
                 }}
                 className="rounded"
+                width={200}
+                height={200}
               />
               <div className="mt-2">
                 <small className="text-muted !text-white">
