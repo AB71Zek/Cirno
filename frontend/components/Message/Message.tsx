@@ -22,7 +22,7 @@ const Message: React.FC<MessageProps> = ({
 
   return (
     <div
-      className={`d-flex ${
+      className={`d-flex mb-3 ${
         isUser ? "justify-content-end" : "justify-content-start"
       }`}
     >

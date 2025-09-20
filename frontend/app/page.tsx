@@ -58,6 +58,14 @@ export default function Home() {
     chatContainerRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [conversation]);
 
+  const startNewConversation = () => {
+    setConversation([]);
+    setSessionId(null);
+    localStorage.removeItem('sessionId');
+    setSelectedImage(null);
+    setMessage("");
+  };
+
   async function sendMessage() {
     if (!message.trim() && !selectedImage) return;
 
@@ -167,6 +175,7 @@ export default function Home() {
         loading={loading}
         selectedImage={selectedImage}
         setSelectedImage={setSelectedImage}
+        onNewConversation={startNewConversation}
       />
     </div>
   );
