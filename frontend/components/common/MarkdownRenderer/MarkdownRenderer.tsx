@@ -20,7 +20,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         rehypePlugins={[rehypeKatex]}
         components={{
           // Custom styling for code blocks
-          code({ node, inline, className, children, ...props }) {
+          code({ node, inline, className, children, ...props }:any) {
             const match = /language-(\w+)/.exec(className || "");
             return !inline && match ? (
               <pre className="!bg-neutral-500 text-white p-3 rounded mb-3">
