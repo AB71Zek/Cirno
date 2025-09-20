@@ -50,15 +50,7 @@ router.post("/problem-solver", upload.single('image'), async (req, res) => {
       });
     }
     
-    // Validate request - require either message or image
-    if (!req.body.message && !req.file) {
-      return res.status(400).json({
-        error: "Either a message or an image file is required. Maximum file size: 5MB. Supported formats: JPEG, PNG, WebP, BMP, TIFF",
-        success: false,
-      });
-    }
-
-    // Extract and validate session
+    // Extract and validate session first
     const { sessionId, isValid, isNew } = extractAndValidateSession(req);
     
     if (!isValid) {
@@ -70,6 +62,29 @@ router.post("/problem-solver", upload.single('image'), async (req, res) => {
 
     // Ensure conversation document exists
     await ensureConversationExists(sessionId);
+
+    // Check if this is just a sessionId request (empty message and no file)
+    const isEmptyRequest = (!req.body.message || req.body.message.trim() === "") && !req.file;
+    
+    if (isEmptyRequest) {
+      // Just return the sessionId without processing any message
+      setSessionCookie(res, sessionId);
+      return res.json({
+        success: true,
+        message: "",
+        mode: "session_only",
+        sessionId,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // Validate request - require either message or image for actual processing
+    if (!req.body.message && !req.file) {
+      return res.status(400).json({
+        error: "Either a message or an image file is required. Maximum file size: 5MB. Supported formats: JPEG, PNG, WebP, BMP, TIFF",
+        success: false,
+      });
+    }
 
     // Prepare message parts
     const messageParts = [];
