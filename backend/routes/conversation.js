@@ -2,12 +2,15 @@ const express = require("express");
 const multer = require("multer");
 const genAI = require("../services/gemini");
 const { compressImage, imageToBase64 } = require("../utils/imageProcessor");
-const { extractAndValidateSession, setSessionCookie } = require("../utils/sessionManager");
-const { 
-  ensureConversationExists, 
-  saveMessage, 
-  getConversationMessages, 
-  deleteConversation 
+const {
+  extractAndValidateSession,
+  setSessionCookie,
+} = require("../utils/sessionManager");
+const {
+  ensureConversationExists,
+  saveMessage,
+  getConversationMessages,
+  deleteConversation,
 } = require("../services/conversationService");
 
 const router = express.Router();
@@ -22,25 +25,30 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     // Define allowed image types
     const allowedMimeTypes = [
-      'image/jpeg',
-      'image/jpg', 
-      'image/png',
-      'image/webp',
-      'image/bmp',
-      'image/tiff'
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "image/bmp",
+      "image/tiff",
     ];
-    
+
     // Check if file type is allowed
     if (allowedMimeTypes.includes(file.mimetype.toLowerCase())) {
       cb(null, true);
     } else {
-      cb(new Error(`File type ${file.mimetype} not allowed. Only image files (JPEG, PNG, WebP, BMP, TIFF) are supported.`), false);
+      cb(
+        new Error(
+          `File type ${file.mimetype} not allowed. Only image files (JPEG, PNG, WebP, BMP, TIFF) are supported.`
+        ),
+        false
+      );
     }
-  }
+  },
 });
 
 // PROBLEM SOLVER MODE (/api/conversation/problem-solver) - Unified text and image support
-router.post("/problem-solver", upload.single('image'), async (req, res) => {
+router.post("/problem-solver", upload.single("image"), async (req, res) => {
   try {
     // Handle multer errors (file size, file type, etc.)
     if (req.fileValidationError) {
@@ -49,10 +57,19 @@ router.post("/problem-solver", upload.single('image'), async (req, res) => {
         success: false,
       });
     }
-    
-    // Extract and validate session first
+
+    // Validate request - require either message or image
+    if (!req.body.message && !req.file) {
+      return res.status(400).json({
+        error:
+          "Either a message or an image file is required. Maximum file size: 5MB. Supported formats: JPEG, PNG, WebP, BMP, TIFF",
+        success: false,
+      });
+    }
+
+    // Extract and validate session
     const { sessionId, isValid, isNew } = extractAndValidateSession(req);
-    
+
     if (!isValid) {
       return res.status(400).json({
         error: "Invalid session ID format",
@@ -88,22 +105,22 @@ router.post("/problem-solver", upload.single('image'), async (req, res) => {
 
     // Prepare message parts
     const messageParts = [];
-    
+
     // Add text message if provided
     if (req.body.message) {
       messageParts.push({ text: req.body.message });
     }
-    
+
     // Add image if provided
     if (req.file) {
       // Compress image to specific dimensions at 80% quality
       const compressedImageBuffer = await compressImage(req.file.buffer);
-      
+
       // Convert to base64 with MIME type
       const imageData = imageToBase64(compressedImageBuffer, req.file.mimetype);
-      
+
       messageParts.push({
-        inlineData: imageData
+        inlineData: imageData,
       });
     }
 
@@ -196,7 +213,6 @@ router.get("/:sessionId", async (req, res) => {
     }
 
     const messages = await getConversationMessages(sessionId);
-    
 
     res.json({
       success: true,
@@ -234,14 +250,14 @@ router.delete("/:sessionId", async (req, res) => {
     });
   } catch (error) {
     console.error("Delete Conversation API Error:", error);
-    
+
     if (error.message === "Conversation not found") {
       return res.status(404).json({
         success: false,
         error: "Conversation not found",
       });
     }
-    
+
     res.status(500).json({
       success: false,
       error: "Failed to delete conversation",
@@ -249,142 +265,5 @@ router.delete("/:sessionId", async (req, res) => {
     });
   }
 });
-
-// Alternative version where it outputs a json object and leaves it to frontend to handle it
-// List available modes
-// router.get("/models", (req, res) => {
-//   res.json({
-//     success: true,
-//     modes: [
-//       {
-//         id: "problem_solver",
-//         name: "Problem Solver",
-//         description: "Professional Math Tutor for step-by-step problem solving",
-//         endpoint: "/api/problem-solver",
-//       },
-//     ],
-//   });
-// });
-
-// router.post("/problem-solver/stateless", async (req, res) => {
-//   try {
-//     const { history = [], message } = req.body || {};
-//     if (!message) {
-//       return res
-//         .status(400)
-//         .json({ success: false, error: "Message is required" });
-//     }
-//     if (!genAI) {
-//       return res
-//         .status(500)
-//         .json({ success: false, error: "Gemini not configured" });
-//     }
-
-//     const systemInstructions = `You are a Professional Math Tutor tasked with creating detailed guides on how to solve math problems. You must structure your response as a JSON object with exactly these three fields:
-
-// 1. "initialResponse": A brief explanation of what the problem is asking, identifying the question and predicting the grade level (but don't mention the grade level). Simplify your language to accommodate this prediction.
-
-// 2. "stepByStepSolution": An array of detailed steps showing how to solve the problem. Each step should be a string explaining the method and reasoning. Include all necessary steps to reach the final answer.
-
-// 3. "hint": A helpful hint that explains the method needed to solve the problem without giving away the solution. Include a relevant example that can help the user understand this method.`;
-
-//     // Create a fresh local chat with system instructions
-//     const chat = genAI.chats.create({
-//       model: "gemini-2.5-flash-lite",
-//       config: {
-//         systemInstruction: {
-//           role: "system",
-//           parts: [{ text: systemInstructions }],
-//         },
-//         maxOutputTokens: 65535,
-//         temperature: 1,
-//         topP: 0.95,
-//         responseMimeType: "application/json",
-//         responseSchema: {
-//           type: "object",
-//           properties: {
-//             initialResponse: {
-//               type: "string",
-//             },
-//             stepByStepSolution: {
-//               type: "array",
-//               items: {
-//                 type: "string",
-//               },
-//             },
-//             hint: {
-//               type: "string",
-//             },
-//           },
-//           required: ["initialResponse", "stepByStepSolution", "hint"],
-//         },
-//         safetySettings: [
-//           { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "OFF" },
-//           { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "OFF" },
-//           { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "OFF" },
-//           { category: "HARM_CATEGORY_HARASSMENT", threshold: "OFF" },
-//         ],
-//       },
-//     });
-
-//     // Replay client-held history into the local chat
-//     for (const turn of history) {
-//       const role = turn?.role === "model" ? "model" : "user";
-//       const text = String(turn?.text ?? "").trim();
-//       if (!text) continue;
-//       if (role === "user") {
-//         await chat.sendMessage({ message: [{ text }] });
-//       } else {
-//         // Provide prior assistant reply as contextual note to maintain statelessness
-//         await chat.sendMessage({
-//           message: [
-//             { text: `(Previous assistant reply for context): ${text}` },
-//           ],
-//         });
-//       }
-//     }
-
-//     // Send current user message and stream the response
-//     const stream = await chat.sendMessageStream({
-//       message: [{ text: String(message) }],
-//     });
-//     let reply = "";
-//     for await (const chunk of stream) {
-//       if (chunk.text) reply += chunk.text;
-//     }
-
-//     // Parse the JSON response from the AI (should be valid JSON due to responseMimeType)
-//     let structuredResponse;
-//     try {
-//       structuredResponse = JSON.parse(reply);
-//     } catch (parseError) {
-//       console.error("Failed to parse AI response as JSON:", parseError);
-//       // Fallback to original format if JSON parsing fails
-//       return res.json({
-//         success: true,
-//         message: reply,
-//         mode: "problem_solver_stateless",
-//         timestamp: new Date().toISOString(),
-//       });
-//     }
-
-//     // Return the structured JSON response
-//     return res.json({
-//       success: true,
-//       initialResponse: structuredResponse.initialResponse || "",
-//       stepByStepSolution: structuredResponse.stepByStepSolution || [],
-//       hint: structuredResponse.hint || "",
-//       mode: "problem_solver_stateless",
-//       timestamp: new Date().toISOString(),
-//     });
-//   } catch (error) {
-//     console.error("Problem Solver (stateless) API Error:", error);
-//     return res.status(500).json({
-//       success: false,
-//       error: "Failed to generate response",
-//       details: error.message,
-//     });
-//   }
-// });
 
 module.exports = router;
