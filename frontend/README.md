@@ -1,5 +1,12 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+### Required Environment Variables
+
+- **BACKEND_PROD_URL**: The production backend API URL (used when deployed)
+- **BACKEND_DEV_URL**: The development backend API URL (used for local development)
+
+The application will automatically use the appropriate URL based on the environment. For local development, make sure your backend is running on the port specified in `BACKEND_DEV_URL`.
+
 ## Getting Started
 
 First, run the development server:
