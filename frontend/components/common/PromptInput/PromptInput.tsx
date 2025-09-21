@@ -99,7 +99,8 @@ const PromptInput: React.FC<PromptInputProps> = ({
                 }}
                 className="rounded"
                 width={200}
-                height={200}
+                height={200
+                }
               />
               <div className="mt-2">
                 <small className="text-muted !text-white">
