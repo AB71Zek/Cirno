@@ -124,8 +124,8 @@ GCP_LOCATION_FIREBASE = your-firebase-location
 4. **Click "Add Key" → "Create new key"**
 5. **Select "JSON" format**
 6. **Click "Create"** (file will download automatically)
-7. **Rename the file** to `cirno-firebase-adminsdk.json`
-8. **Move it** to your backend `config/` directory
+7. **Rename the file** to `service-account.json`
+8. **Move it** to your backend root directory
 
 ## Development
 
