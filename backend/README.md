@@ -52,12 +52,23 @@ Create a `.env` file in the backend root directory with the following variables:
 ```env
 # Firebase Configuration
 FIREBASE_CREDENTIALS_PATH=./config/cirno-firebase-adminsdk.json
+GCP_PROJECT_ID_FIREBASE = your-firebase-project-id
+GCP_LOCATION_FIREBASE = your-firebase-location
+
+# Google Cloud Platform Configuration (for Gemini AI)
+GOOGLE_GENAI_USE_VERTEXAI=true
+GCP_PROJECT_ID=your-gcp-project-id
+GCP_LOCATION=your-gcp-location
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
 
 # Server Configuration
 PORT=5000
 NODE_ENV=development
+
+# Optional: Debug Configuration
+DEBUG=false
 ```
-```
+
 
 ## Firebase Setup
 
