@@ -58,16 +58,7 @@ router.post("/problem-solver", upload.single("image"), async (req, res) => {
       });
     }
 
-    // Validate request - require either message or image
-    if (!req.body.message && !req.file) {
-      return res.status(400).json({
-        error:
-          "Either a message or an image file is required. Maximum file size: 5MB. Supported formats: JPEG, PNG, WebP, BMP, TIFF",
-        success: false,
-      });
-    }
-
-    // Extract and validate session
+    // Extract and validate session first
     const { sessionId, isValid, isNew } = extractAndValidateSession(req);
 
     if (!isValid) {
